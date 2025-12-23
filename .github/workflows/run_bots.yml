@@ -1,0 +1,51 @@
+name: Bot Cào Tin Tức (3 Con)
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Chạy mỗi 5 phút
+  workflow_dispatch:       # Nút chạy thủ công
+
+permissions:
+  contents: write          # Cấp quyền ghi file json
+
+jobs:
+  run-scrapers:
+    runs-on: ubuntu-latest
+
+    # 👇👇👇 THÊM ĐOẠN NÀY ĐỂ BƠM SECRETS VÀO 👇👇👇
+    env:
+      BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+      CHAT_ID: ${{ secrets.CHAT_ID }}
+    # 👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Set up Chrome
+      uses: browser-actions/setup-chrome@latest
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+ 
+
+    - name: Run Bot 3
+      run: python -u ba_con_bot.py  # Nhớ đổi tên file cho đúng file của bạn
+      continue-on-error: true
+
+    - name: Commit and Push Data
+      run: |
+        git config --global user.name "Bot Cào Tin"
+        git config --global user.email "bot@github.com"
+        git add data_news*.json
+        timestamp=$(date -u)
+        git commit -m "Auto-update data: ${timestamp}" || exit 0
+        git push
